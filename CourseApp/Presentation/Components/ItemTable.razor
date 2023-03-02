@@ -32,10 +32,10 @@
         <ActionColumn Title="Action">
             <Space Size=@("middle")>
                 <SpaceItem>
-                    <a href="Collections/@context.Id/Edit">Edit</a>
+                    <a href="MyItems/@context.Id/Edit">Edit</a>
                 </SpaceItem>
                 <SpaceItem>
-                    <Button Class="btn-danger" OnClick="()=> Delete(context)">Delete</Button>
+                    <button class="btn btn-danger" @onclick="()=> Delete(context)">Delete</button>
                 </SpaceItem>
             </Space>
         </ActionColumn>

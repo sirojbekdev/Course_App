@@ -1,12 +1,15 @@
 using BlazorSpinner;
 using MatBlazor;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
 using Presentation.Application.Interfaces;
 using Presentation.Data;
+using Presentation.Data.Services;
 using Presentation.Infostructure.Identity;
 using Presentation.Infostructure.Persistence;
 using Presentation.Infostructure.Persistence.Repositories;
+using Presentation.Infostructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("Default") ?? throw new InvalidOperationException("Connection string 'AppDbContextConnection' not found.");
@@ -37,14 +40,15 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddLocalization();
 
 builder.Services.AddScoped<SpinnerService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddSingleton<AppData>();
-//builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-//builder.Services.AddScoped<IItemRepository, ItemRepository>();
-//builder.Services.AddScoped<ITopicRepository, TopicRepository>();
-//builder.Services.AddScoped<ICollectionRepository, CollectionRepository>();
-//builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
 
+builder.Services.AddScoped<IAuthorizationHandler, CorrectUserHandler>();
+builder.Services.AddAuthorization(opt =>
+{
+    opt.AddPolicy("IsActive", policy => policy.Requirements.Add(new CorrectUserRequirement()));
+});
 
 var app = builder.Build();
 

@@ -1,7 +1,9 @@
-﻿@inject AppData AppData
+﻿@using Presentation.Infostructure.Services;
+@inject AppData AppData
 @inject UserManager<AppUser> UserManager
 @inject IMessageService Message
 @inject SpinnerService Spinner
+@inject IUserService UserService
 
 <Table PageSize="10" Class="text-body bg-body" TItem="AppUser" DataSource="@Collectors">
 
@@ -10,7 +12,7 @@
     </PropertyColumn>
 
     <PropertyColumn Sortable Title="Collections" Property="c=>c.Collections">
-       @context.Collections.Count
+        @context.Collections.Count
     </PropertyColumn>
 
     <PropertyColumn Sortable Title="Total Likes" Property="c=> c.Collections.Sum(x=>x.Items.Sum(x=>x.Likes.Count))">
@@ -18,11 +20,23 @@
 
     @if (AppData.User != null && AppData.IsAdmin)
     {
-        <ActionColumn Title="Action">
+        <ActionColumn Title="Actions">
             <Space Size=@("middle")>
                 <SpaceItem>
-                    <Button Class="btn-danger" OnClick="()=> Delete(context)">Delete</Button>
+                    <Button Class="btn btn-danger" OnClick="()=> Delete(context)">Delete</Button>
                 </SpaceItem>
+                @if (context.Status == Domain.Enums.UserStatus.Active)
+                {
+                    <SpaceItem>
+                        <Button Class="btn btn-info" OnClick="()=> BlockUser(context)">Block</Button>
+                    </SpaceItem>
+                }
+                else
+                {
+                    <SpaceItem>
+                        <Button Class="btn btn-info" OnClick="()=> UnblockUser(context)">Unblock</Button>
+                    </SpaceItem>
+                }
             </Space>
         </ActionColumn>
     }
@@ -57,16 +71,15 @@
     private async Task HandleOk(MouseEventArgs e)
     {
         Spinner.Show();
-        var result = await UserManager.DeleteAsync(_selectedUser);
+        var result = await UserService.DeleteUserAsync(_selectedUser);
+        Spinner.Hide();
         if (result != null)
         {
             await Message.Success("User Deleted");
-            Spinner.Hide();
         }
         else
         {
             await Message.Error("Something went wrong");
-            Spinner.Hide();
         }
         _visible = false;
     }
@@ -83,5 +96,34 @@
         _selectedUser = collector;
     }
 
+    private async Task UnblockUser(AppUser user)
+    {
+        Spinner.Show();
+        var result = await UserService.UnblockUserAsync(user);
+        Spinner.Hide();
+        if (result != null)
+        {
+            await Message.Success("User Unblocked");
+        }
+        else
+        {
+            await Message.Error("Something went wrong");
+        }
+    }
+
+    private async Task BlockUser(AppUser user)
+    {
+        Spinner.Show();
+        var result = await UserService.BlockUserAsync(user);
+        Spinner.Hide();
+        if (result != null)
+        {
+            await Message.Success("User Unblocked");
+        }
+        else
+        {
+            await Message.Error("Something went wrong");
+        }
+    }
 }
 

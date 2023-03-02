@@ -3,8 +3,9 @@
 @inject IUnitOfWork UnitOfWork
 @inject NavigationManager Navigation
 @inject IMessageService Message
-@attribute [Authorize(Policy ="IsActive", Roles = "Admin")]
-<h3>Create Topic</h3>
+@attribute [Authorize(Policy = "IsActive", Roles = "Admin")]
+
+<div class="h3">Create Topic</div>
 
 <EditForm Model="@_topic" OnValidSubmit="@CreateAsync"
           OnInvalidSubmit="@(e=>_hasError = true)">
@@ -40,16 +41,15 @@
     {
         Spinner.Show();
         var result = await UnitOfWork.Topics.AddAsync(_topic);
+        Spinner.Hide();
         if (result != null)
         {
             await Message.Success("Collection was created");
-            Spinner.Hide();
             Navigation.NavigateTo("MyCollections");
         }
         else
         {
             await Message.Error("Something went wrong");
-            Spinner.Hide();
             return;
         }
         _hasError = false;

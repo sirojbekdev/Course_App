@@ -1,0 +1,22 @@
+﻿@page "/Collections"
+@inject AppData AppData
+@inject IUnitOfWork UnitOfWork
+
+<div class="h3">Collections</div>
+
+@if (_collections != null && _collections.Any())
+{
+    <CollectionTable Collections="_collections" />
+}
+else
+{
+    <Empty />
+}
+
+@code {
+    IEnumerable<Collection> _collections;
+    protected override async Task OnInitializedAsync()
+    {
+        _collections = await UnitOfWork.Collections.GetAllAsync();
+    }
+}

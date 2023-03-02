@@ -1,8 +1,9 @@
 ﻿@page "/MyCollections"
 @inject AppData AppData
 @inject IUnitOfWork UnitOfWork
+@attribute [Authorize(Policy ="IsActive")]
 
-<h3>My Collections</h3>
+<div class="h3">My Collections</div>
 <NavLink href="MyCollections/create">Create a Collection</NavLink>
 @if (_collections != null && _collections.Any())
 {

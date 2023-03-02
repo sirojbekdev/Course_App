@@ -3,6 +3,8 @@
 @using Markdig
 @inject IUnitOfWork UnitOfWork
 @inject AppData AppData
+@inject IMessageService Message
+@inject SpinnerService Spinner
 
 @if (_collection != null)
 {
@@ -26,6 +28,9 @@
             <a href="MyCollections/@_collection.Id/Items/Create">
                 <span class="bi bi-plus"></span> Add Item
             </a>
+        </div>
+        <div>
+            <Button Class="btn btn-danger" OnClick="Delete">Delete</Button>
         </div>
     }
 
@@ -57,5 +62,20 @@
         }
 
         _collection = await UnitOfWork.Collections.GetByIdAsync(CollectionId);
+    }
+
+    async Task Delete()
+    {
+        Spinner.Show();
+        var result = await UnitOfWork.Collections.DeleteAsync(CollectionId);
+        Spinner.Hide();
+        if (result != null)
+        {
+            await Message.Success("Collection was deleted");
+        }
+        else
+        {
+            await Message.Error("something went wrong");
+        }
     }
 }

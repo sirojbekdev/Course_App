@@ -1,0 +1,22 @@
+﻿@page "/Tags"
+@inject AppData AppData
+@inject IUnitOfWork UnitOfWork
+
+<div class="h3">Tags</div>
+
+@if (_tags != null && _tags.Any())
+{
+    <TagTable Tags="_tags" />
+}
+else
+{
+    <Empty />
+}
+
+@code {
+    IEnumerable<Domain.Entities.Tag> _tags;
+    protected override async Task OnInitializedAsync()
+    {
+        _tags = await UnitOfWork.Tags.GetAllAsync();
+    }
+}

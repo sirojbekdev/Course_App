@@ -4,6 +4,7 @@
 @inject NavigationManager Navigation
 @inject IMessageService Message
 @inject SpinnerService Spinner
+@attribute [Authorize(Policy = "IsActive")]
 
 <div class="h3">Create Custom Field</div>
 

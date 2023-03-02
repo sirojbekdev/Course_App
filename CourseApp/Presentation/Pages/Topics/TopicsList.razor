@@ -1,0 +1,28 @@
+﻿@page "/Topics"
+@inject AppData AppData
+@inject IUnitOfWork UnitOfWork
+
+<div class="h3">Topics</div>
+
+@if(AppData.IsAdmin && AppData.User != null)
+{
+    <a href="Topics/Create">Create Topic</a>
+    <Divider/>
+}
+
+@if(_topics !=null && _topics.Any())
+{    
+    <TopicTable Topics="_topics" />
+}
+else
+{
+    <Empty />
+}
+
+@code {
+    IEnumerable<Topic> _topics;
+    protected override async Task OnInitializedAsync()
+    {
+        _topics = await UnitOfWork.Topics.GetAllAsync();
+    }
+}

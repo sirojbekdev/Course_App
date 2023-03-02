@@ -1,6 +1,7 @@
 ﻿@page "/MyItems"
 @inject AppData AppData
 @inject IUnitOfWork UnitOfWork
+@attribute [Authorize(Policy = "IsActive")]
 
 <div class="h3">My Items</div>
 

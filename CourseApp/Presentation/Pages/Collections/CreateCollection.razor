@@ -4,6 +4,7 @@
 @inject IMessageService Message
 @inject SpinnerService Spinner
 @inject NavigationManager Navigation
+@attribute [Authorize(Policy = "IsActive")]
 
 <div class="h3">Create Collection</div>
 <EditForm Model="@_collection" OnValidSubmit="@CreateAsync" 

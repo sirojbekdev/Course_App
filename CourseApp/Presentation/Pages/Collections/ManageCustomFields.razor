@@ -2,9 +2,10 @@
 @using Presentation.Domain.Enums;
 @inject IUnitOfWork UnitOfWork
 @inject NavigationManager Navigation
+@attribute [Authorize(Policy ="IsActive")]
 
-<h3>Manage Collection</h3>
-<Button OnClick="NavigateToAddField" class="nav-link">Edt the Collection</Button>
+<div class="h3">Manage Collection</div>
+<Button OnClick="NavigateToAddField" class="nav-link">Add Field</Button>
 @if (_customFields != null && _customFields.Any())
 {
     <div>

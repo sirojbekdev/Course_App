@@ -3,6 +3,8 @@
 @using Presentation.Domain.Enums;
 @inject IUnitOfWork UnitOfWork
 @inject AppData AppData
+@inject IMessageService Message
+@inject SpinnerService Spinner
 
 @if (_item != null)
 {
@@ -11,9 +13,10 @@
     @if (_item.Collection.AppUserId == _user?.Id || _isAdmin)
     {
         <div>
-            <a href="MyItems/@_item.Id/Edit">
+            <a class="btn btn-outline-info" href="MyItems/@_item.Id/Edit">
                 <span class="bi bi-pen"></span> Edit
             </a>
+            <Button Class="btn btn-danger mx-2" OnClick="Delete">Delete</Button>
         </div>
     }
 
@@ -46,7 +49,7 @@
             @foreach (var tag in _item.Tags)
             {
                 <a href="Search/Tags/@tag.Id">
-                <Tag @key="@tag.TagName">#@tag.TagName</Tag>
+                    <Tag @key="@tag.TagName">#@tag.TagName</Tag>
                 </a>
             }
         </div>
@@ -57,7 +60,7 @@
         foreach (var field in _item.ItemCustomFields)
         {
             <div class="h5">@field.Name:</div>
-            if(field.Value == null || string.IsNullOrWhiteSpace(field.Value))
+            if (field.Value == null || string.IsNullOrWhiteSpace(field.Value))
             {
                 <div class="h6 text-danger">Not Defined</div>
             }
@@ -90,7 +93,7 @@
     <EditForm Model="_newComment" OnValidSubmit="@AddComment"
           OnInvalidSubmit="e=> _hasErrors = true">
         <label for="comment">comment here</label>
-        <TextArea AutoSize MinRows="5" Disabled="_isViewOnly" @bind-Value="_newComment.Content"  Id="comment" name="comment" />
+        <TextArea AutoSize MinRows="5" Disabled="_isViewOnly" @bind-Value="_newComment.Content" Id="comment" name="comment" />
         <Divider />
         @if (_hasErrors)
         {
@@ -124,6 +127,21 @@
         }
 
         _item = await UnitOfWork.Items.GetByIdAsync(ItemId);
+    }
+
+    async Task Delete()
+    {
+        Spinner.Show();
+        var result = await UnitOfWork.Items.DeleteAsync(ItemId);
+        Spinner.Hide();
+        if (result != null)
+        {
+            await Message.Success("Item was deleted");
+        }
+        else
+        {
+            await Message.Error("something went wrong");
+        }
     }
 
     async Task LikeItem(Item item)

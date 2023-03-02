@@ -1,0 +1,22 @@
+﻿@page "/Items"
+@inject AppData AppData
+@inject IUnitOfWork UnitOfWork
+
+<div class="h3">Items</div>
+
+@if (_items != null && _items.Any())
+{
+    <ItemTable Items="_items" />
+}
+else
+{
+    <Empty />
+}
+
+@code {
+    IEnumerable<Item> _items;
+    protected override async Task OnInitializedAsync()
+    {
+        _items = await UnitOfWork.Items.GetAllAsync();
+    }
+}

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Presentation.Data;
+using Presentation.Domain.Enums;
 using Presentation.Infostructure.Identity;
 using System.ComponentModel.DataAnnotations;
 
@@ -115,11 +116,19 @@ namespace Presentation.Areas.Identity.Pages.Account
             {
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
+                var user = await _userManager.FindByEmailAsync(Input.Email);
+                if (user != null && user.Status == UserStatus.Blocked)
+                {
+                    _logger.LogWarning("User account blocked");
+
+                    ModelState.AddModelError(string.Empty, "User Account Blocked");
+                    return Page();
+                }
                 var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
-                    _appData.User = await _userManager.FindByEmailAsync(Input.Email);
-                    _appData.IsAdmin = await _userManager.IsInRoleAsync(_appData.User, "Admin");
+                    _appData.User = user;
+                    _appData.IsAdmin = await _userManager.IsInRoleAsync(user, "Admin");
                     _logger.LogInformation("User logged in.");
                     return LocalRedirect(returnUrl);
                 }

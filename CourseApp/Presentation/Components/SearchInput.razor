@@ -1,7 +1,8 @@
 ﻿@using Microsoft.AspNetCore.WebUtilities;
 @inject NavigationManager Navigation
 
-<Search Class="mb-2" AllowClear EnterButton="true" @bind-Value="SearchTerm" OnSearch="Search" />
+<Search  Placeholder="Search" AllowClear EnterButton="true" @bind-Value="SearchTerm" OnSearch="Search" />
+<Divider/>
 
 @code {
     string SearchTerm;
