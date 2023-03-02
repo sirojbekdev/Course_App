@@ -1,0 +1,31 @@
+﻿@page "/Collectors/{CollectorId:guid}"
+
+@inject IUnitOfWork UnitOfWork
+@inject UserManager<AppUser> UserManager
+@inject AppData AppData
+
+@if (_collector != null)
+{
+    <div class="h3">@_collector.UserName</div>
+    <div class="h3">Email: @_collector.Email</div>
+    <div class="h3">Total Items: @_collector.Collections.Sum(c=>c.Items.Count))</div>
+    <div class="h3">Total likes: @_collector.Collections.Sum(x=>x.Items.Sum(c=>c.Likes.Count))</div>
+    <Divider />
+
+    <CollectionTable Collections="_collections" />
+}
+
+@code {
+    [Parameter]
+    public Guid CollectorId { get; set; }
+
+    AppUser? _collector;
+    IEnumerable<Collection>? _collections;
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _collector = await UserManager.FindByIdAsync(CollectorId.ToString());
+        _collections = await UnitOfWork.Collections.FindAllAsync(x => x.AppUserId == CollectorId);
+    }
+}

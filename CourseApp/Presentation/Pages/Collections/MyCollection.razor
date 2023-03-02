@@ -1,0 +1,28 @@
+﻿@page "/MyCollections"
+@inject AppData AppData
+@inject IUnitOfWork UnitOfWork
+
+<h3>My Collections</h3>
+<NavLink href="MyCollections/create">Create a Collection</NavLink>
+@if (_collections != null && _collections.Any())
+{
+    <CollectionTable Collections="@_collections" />
+}
+else
+{
+    <Empty />
+    <NavLink href="MyCollections/create">Create a Collection</NavLink>
+}
+
+@code {
+    IEnumerable<Collection> _collections;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AppData.User != null)
+        {
+            _collections = await UnitOfWork.Collections
+                .GetCollectionsByUserIdAsync(AppData.User.Id);
+        }
+    }
+}

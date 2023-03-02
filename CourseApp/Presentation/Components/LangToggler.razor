@@ -1,0 +1,31 @@
+﻿@using System.Globalization;
+<select class="form-control" @bind="Culture" style="width:150px">
+    @foreach (var culture in _cultures)
+    {
+        <option value="@culture"> @culture.DisplayName</option>
+    }
+</select>
+
+@code {
+
+    [Parameter] public EventCallback<CultureInfo> AfterUpdate { get; set; }
+    [Parameter]
+    public CultureInfo? Culture
+    {
+        get => CultureInfo.CurrentCulture;
+        set
+        {
+            if (CultureInfo.CurrentCulture != value)
+            {
+                if (AfterUpdate.HasDelegate) AfterUpdate.InvokeAsync(value);
+            }
+        }
+    }
+
+    private CultureInfo? _culture;
+    CultureInfo[] _cultures = new CultureInfo[]
+    {
+        new("en-US"),
+        new("ru-RU")
+    };
+}

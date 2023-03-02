@@ -1,0 +1,92 @@
+﻿@using Presentation.Components
+@using Microsoft.Extensions.Localization;
+@using Presentation.Data.Language;
+@inject IStringLocalizer<MainUI> loc
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <AppBar />
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</div>
+
+<CascadingAuthenticationState>
+    <div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+        <nav class="flex-column">
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                    <span class="oi oi-home" aria-hidden="true"></span>  @loc["Home"]
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="Collectors">
+                    <span class="bi bi-people" aria-hidden="true"></span>  @loc["Collectors"]
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="Collections">
+                    <span class="bi bi-collection" aria-hidden="true"></span>  @loc["Collections"]
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="Items">
+                    <span class="bi bi-journal" aria-hidden="true"></span>  @loc["Items"]
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="Topics">
+                    <span class="bi bi-signal" aria-hidden="true"></span>  @loc["Topics"]
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="Tags">
+                    <span class="bi bi-hash" aria-hidden="true"></span>  @loc["Tags"]
+                </NavLink>
+            </div>
+            <AuthorizeView>
+                <Authorized>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="Identity/Account/Manage/Index">
+                            @loc["Hi", @context.User.Identity.Name]
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="MyCollections">
+                            <span class="oi oi-account-logout" aria-hidden="true"></span>
+                            @loc["MyCollections"]
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="Identity/Account/Logout">
+                            <span class="oi oi-account-logout" aria-hidden="true"></span>
+                            @loc["Logout"]
+                        </NavLink>
+                    </div>
+                </Authorized>
+                <NotAuthorized>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="Identity/Account/Register">
+                            <MudIcon Icon="@Icons.Material.Filled.HowToReg" /> @loc["Register"]
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="Identity/Account/Login">
+                            <span class="oi oi-account-login" aria-hidden="true"></span> @loc["Login"]
+                        </NavLink>
+                    </div>
+                </NotAuthorized>
+            </AuthorizeView>
+        </nav>
+    </div>
+</CascadingAuthenticationState>
+@code {
+    private bool collapseNavMenu = true;
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}

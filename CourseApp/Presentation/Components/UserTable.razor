@@ -1,0 +1,87 @@
+﻿@inject AppData AppData
+@inject UserManager<AppUser> UserManager
+@inject IMessageService Message
+@inject SpinnerService Spinner
+
+<Table PageSize="10" Class="text-body bg-body" TItem="AppUser" DataSource="@Collectors">
+
+    <PropertyColumn Sortable Property="c=>c.UserName">
+        <a href="Collectors/@context.Id">@context.UserName</a>
+    </PropertyColumn>
+
+    <PropertyColumn Sortable Title="Collections" Property="c=>c.Collections">
+       @context.Collections.Count
+    </PropertyColumn>
+
+    <PropertyColumn Sortable Title="Total Likes" Property="c=> c.Collections.Sum(x=>x.Items.Sum(x=>x.Likes.Count))">
+    </PropertyColumn>
+
+    @if (AppData.User != null && AppData.IsAdmin)
+    {
+        <ActionColumn Title="Action">
+            <Space Size=@("middle")>
+                <SpaceItem>
+                    <Button Class="btn-danger" OnClick="()=> Delete(context)">Delete</Button>
+                </SpaceItem>
+            </Space>
+        </ActionColumn>
+    }
+
+</Table>
+
+@if (_selectedUser != null)
+{
+    <Modal Title="@_selectedUser.UserName"
+       Visible="@_visible"
+       OnOk="@HandleOk"
+       OkButtonProps="new AntDesign.ButtonProps(){ Danger = true }"
+       OnCancel="@HandleCancel">
+        <p>Do You want to delete?</p>
+        <p>Item : @_selectedUser.UserName</p>
+        <p>With @_selectedUser.Collections?.Count likes</p>
+    </Modal>
+}
+@code {
+    [Parameter]
+    public IEnumerable<AppUser>? Collectors { get; set; }
+
+    protected override void OnInitialized()
+    {
+        _isViewOnly = AppData.User != null;
+    }
+
+    AppUser? _selectedUser;
+    bool _visible = false;
+    bool _isViewOnly = true;
+
+    private async Task HandleOk(MouseEventArgs e)
+    {
+        Spinner.Show();
+        var result = await UserManager.DeleteAsync(_selectedUser);
+        if (result != null)
+        {
+            await Message.Success("User Deleted");
+            Spinner.Hide();
+        }
+        else
+        {
+            await Message.Error("Something went wrong");
+            Spinner.Hide();
+        }
+        _visible = false;
+    }
+
+    private void HandleCancel(MouseEventArgs e)
+    {
+        _visible = false;
+        _selectedUser = null;
+    }
+
+    void Delete(AppUser collector)
+    {
+        _visible = true;
+        _selectedUser = collector;
+    }
+
+}
+

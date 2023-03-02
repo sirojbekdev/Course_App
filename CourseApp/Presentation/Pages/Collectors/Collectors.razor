@@ -1,0 +1,20 @@
+﻿@page "/Collectors"
+@inject UserManager<AppUser> UserManager
+
+@if (_collectors != null && _collectors.Any())
+{
+    <UserTable Collectors="_collectors" />
+}
+else
+{
+    <Empty />
+}
+
+@code {
+    IEnumerable<AppUser>? _collectors;
+
+    protected override void OnInitialized()
+    {
+        _collectors = UserManager.Users.ToList();
+    }
+}

@@ -1,0 +1,100 @@
+﻿@inject AppData AppData
+@inject IUnitOfWork UnitOfWork
+@inject IMessageService Message
+@inject SpinnerService Spinner
+
+<Table PageSize="10" Class="text-body bg-body" TItem="Item" DataSource="@Items">
+
+    <PropertyColumn Sortable Property="c=>c.Title">
+        <a href="Items/@context.Id">@context.Title</a>
+    </PropertyColumn>
+
+    <PropertyColumn Sortable Title="Collection" Property="c=>c.Collection.Title">
+        <a href="Collections/@context.CollectionId">@context.Collection.Title</a>
+    </PropertyColumn>
+
+    <PropertyColumn Sortable Title="Owner" Property="c=>c.AppUserName">
+        <a href="Collectors/@context.AppUserId">@context.Title</a>
+    </PropertyColumn>
+    <PropertyColumn Sortable DefaultSortOrder="AntDesign.SortDirection.Descending" Title="Likes" Property="c=>c.Likes.Count()">
+    </PropertyColumn>
+
+    <PropertyColumn Property="c=>c.Tags">
+        @foreach (var tag in context.Tags)
+        {
+            <a href="Search/Tags/@tag.Id">
+                <Tag @key="@tag.TagName">#@tag.TagName</Tag>
+            </a>
+        }
+    </PropertyColumn>
+    @if (AppData.User != null && (context.AppUserId == AppData.User.Id || AppData.IsAdmin))
+    {
+        <ActionColumn Title="Action">
+            <Space Size=@("middle")>
+                <SpaceItem>
+                    <a href="Collections/@context.Id/Edit">Edit</a>
+                </SpaceItem>
+                <SpaceItem>
+                    <Button Class="btn-danger" OnClick="()=> Delete(context)">Delete</Button>
+                </SpaceItem>
+            </Space>
+        </ActionColumn>
+    }
+
+</Table>
+
+@if (_selectedItem != null)
+{
+    <Modal Title="@_selectedItem.Title"
+       Visible="@_visible"
+       OnOk="@HandleOk"
+       OkButtonProps="new AntDesign.ButtonProps(){ Danger = true }"
+       OnCancel="@HandleCancel">
+        <p>Do You want to delete?</p>
+        <p>Item : @_selectedItem.Title</p>
+        <p>With @_selectedItem.Likes?.Count likes</p>
+    </Modal>
+}
+@code {
+    [Parameter]
+    public IEnumerable<Item>? Items { get; set; }
+
+    protected override void OnInitialized()
+    {
+        _isViewOnly = AppData.User != null;
+    }
+
+    Item? _selectedItem;
+    bool _visible = false;
+    bool _isViewOnly = true;
+
+    private async Task HandleOk(MouseEventArgs e)
+    {
+        Spinner.Show();
+        var result = await UnitOfWork.Items.DeleteAsync(_selectedItem.Id);
+        if (result != null)
+        {
+            await Message.Success("Collection Deleted");
+            Spinner.Hide();
+        }
+        else
+        {
+            await Message.Error("Something went wrong");
+            Spinner.Hide();
+        }
+        _visible = false;
+    }
+
+    private void HandleCancel(MouseEventArgs e)
+    {
+        _visible = false;
+        _selectedItem = null;
+    }
+
+    void Delete(Item item)
+    {
+        _visible = true;
+        _selectedItem = item;
+    }
+
+}

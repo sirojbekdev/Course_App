@@ -1,0 +1,70 @@
+﻿@page "/"
+@inject IUnitOfWork UnitOfWork
+@inject AppData AppData
+@inject IStringLocalizer<MainUI> loc
+@inject SpinnerService Spinner
+
+<PageTitle>Hot Collections</PageTitle>
+
+<div class="h3">@loc["Items"]:</div>
+@if (_items != null && _items.Any())
+{
+    <ItemTable Items="@_items" />
+}
+
+<div class="h3">Topics:</div>
+@if (_topics != null && _topics.Any())
+{
+   <TopicTable Topics="@_topics" />
+}
+else
+{
+    <Empty />
+}
+
+<div class="h3">Tags:</div>
+@if (_tags != null && _tags.Any())
+{
+    <TagTable Tags="_tags" />
+}
+else
+{
+    <Empty />
+}
+
+<div class="h3">Collections:</div>
+@if (_collections != null && _collections.Any())
+{
+    <CollectionTable Collections="_collections" />
+}
+else
+{
+    <Empty />
+}
+
+@code {
+    AppUser? _user;
+    bool _isAdmin = false;
+
+    IEnumerable<Topic>? _topics;
+    IEnumerable<Domain.Entities.Tag>? _tags;
+    IEnumerable<Collection>? _collections;
+    IEnumerable<Item>? _items;
+
+    protected override void OnInitialized()
+    {
+        Spinner.Show();
+        if (AppData.User != null)
+        {
+            _user = AppData.User;
+            _isAdmin = AppData.IsAdmin;
+        }
+
+        _topics = UnitOfWork.Topics.GetAll();
+        _tags = UnitOfWork.Tags.GetAll();
+        _items = UnitOfWork.Items.GetAll();
+        _collections = UnitOfWork.Collections.GetAll();
+        Spinner.Hide();
+    }
+}
+

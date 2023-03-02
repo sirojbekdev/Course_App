@@ -1,0 +1,16 @@
+﻿@using Microsoft.AspNetCore.WebUtilities;
+@inject NavigationManager Navigation
+
+<Search Class="mb-2" AllowClear EnterButton="true" @bind-Value="SearchTerm" OnSearch="Search" />
+
+@code {
+    string SearchTerm;
+    private void Search()
+    {
+        var queryStrDict = new Dictionary<string, string>()
+            {
+                ["SearchTerm"] = SearchTerm
+            };
+        Navigation.NavigateTo(QueryHelpers.AddQueryString("/Search", queryStrDict));
+    }
+}

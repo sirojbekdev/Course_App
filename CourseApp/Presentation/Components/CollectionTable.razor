@@ -1,0 +1,92 @@
+﻿@inject AppData AppData
+@inject IUnitOfWork UnitOfWork
+@inject IMessageService Message
+@inject SpinnerService Spinner
+
+<Table PageSize="10" Class="text-body bg-body" TItem="Collection" DataSource="@Collections">
+
+    <PropertyColumn Sortable Property="c=>c.Title">
+        <a href="Collections/@context.Id">@context.Title</a>
+    </PropertyColumn>
+
+    <PropertyColumn Sortable Title="Topic" Property="c=>c.TopicTitle">
+        <a href="Topics/@context.TopicId">@context.TopicTitle</a>
+    </PropertyColumn>
+
+    <PropertyColumn Sortable Title="Owner" Property="c=>c.AppUserName">
+        <a href="Collectors/@context.AppUserId">@context.Title</a>
+    </PropertyColumn>
+    <PropertyColumn Sortable DefaultSortOrder="AntDesign.SortDirection.Descending" Title="No:Items" Property="c=>c.Items.Count()">
+    </PropertyColumn>
+
+    @if (AppData.User !=null && (context.AppUserId == AppData.User.Id || AppData.IsAdmin))
+    {
+        <ActionColumn Title="Action">
+            <Space Size=@("middle")>
+                <SpaceItem>
+                    <a href="Collections/@context.Id/Edit">Edit</a>
+                </SpaceItem>
+                <SpaceItem>
+                    <Button Class="btn-danger" OnClick="()=> Delete(context)">Delete</Button>
+                </SpaceItem>
+            </Space>
+        </ActionColumn>
+    }
+
+</Table>
+
+@if (_selectedCollection != null)
+{
+    <Modal Title="@_selectedCollection.Title"
+       Visible="@_visible"
+       OnOk="@HandleOk"
+       OkButtonProps="new AntDesign.ButtonProps(){ Danger = true }"
+       OnCancel="@HandleCancel">
+        <p>Do You want to delete?</p>
+        <p>Collection : @_selectedCollection.Title</p>
+        <p>With @_selectedCollection.Items?.Count items</p>
+    </Modal>
+}
+@code {
+    [Parameter]
+    public IEnumerable<Collection>? Collections { get; set; }
+
+    protected override void OnInitialized()
+    {
+        _isViewOnly = AppData.User != null;
+    }
+
+    Collection? _selectedCollection;
+    bool _visible = false;
+    bool _isViewOnly = true;
+
+    private async Task HandleOk(MouseEventArgs e)
+    {
+        Spinner.Show();
+        var result = await UnitOfWork.Collections.DeleteAsync(_selectedCollection.Id);
+        if(result != null)
+        {
+            await Message.Success("Collection Deleted");
+            Spinner.Hide();
+        }
+        else
+        {
+            await Message.Error("Something went wrong");
+            Spinner.Hide();
+        }
+        _visible = false;
+    }
+
+    private void HandleCancel(MouseEventArgs e)
+    {
+        _visible = false;
+        _selectedCollection = null;
+    }
+
+    void Delete(Collection collection)
+    {
+        _visible = true;
+        _selectedCollection = collection;
+    }
+
+}

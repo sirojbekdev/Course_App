@@ -1,0 +1,26 @@
+﻿@page "/Search/Tags/{TagId:guid}"
+@inject AppData AppData
+@inject IUnitOfWork UnitOfWork
+@inject IMessageService Message
+@inject SpinnerService Spinner
+<div class="h3">Items with this Tag</div>
+
+@if (_items != null && _items.Any())
+{
+    <ItemTable Items="@_items" />
+}
+
+@code {
+    [Parameter]
+    public Guid TagId { get; set; }
+
+    Domain.Entities.Tag _tag;
+    IEnumerable<Item> _items;
+    protected override async Task OnParametersSetAsync()
+    {
+        Spinner.Show();
+        _tag = await UnitOfWork.Tags.GetByIdAsync(TagId);
+        _items = await UnitOfWork.Items.FindAllAsync(x => x.Tags.Contains(_tag));
+        Spinner.Hide();
+    }
+}

@@ -1,0 +1,81 @@
+﻿@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.Extensions.Localization;
+@using Presentation.Components;
+@using Presentation.Data;
+@using Presentation.Data.Language;
+@using Presentation.Shared;
+@namespace Presentation.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@inject IStringLocalizer<MainUI> loc
+@inject AppData appData
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="~/" />
+    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD"
+          crossorigin="anonymous" />
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.2/font/bootstrap-icons.css"
+          integrity="sha384-b6lVK+yci+bfDmaY1u0zE8YYJt0TZxLEAFyYSLHId4xoVvsrQu3INevFKo+Xir8e"
+          crossorigin="anonymous" />
+    <link href="css/site.css" rel="stylesheet" />
+    <link href="Presentation.styles.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+    <link href="_content/AntDesign/css/ant-design-blazor.css" rel="stylesheet" />
+    <link href="_content/MatBlazor/dist/matBlazor.css" rel="stylesheet" />
+    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
+</head>
+<body data-bs-theme="@appData.Theme" class="text-body bg-body">
+    <div class="page">
+        <div class="sidebar">
+            <component type="typeof(NavMenu)" render-mode="ServerPrerendered" />
+        </div>
+
+        <main>
+            <div class="top-row px-2">
+                @loc["AppName"]
+            </div>
+            <article class="container mx-xxl-3 mx-xl-2 mx-lg-0 py-3 text-body bg-body">
+                <component type="typeof(SearchInput)" render-mode="ServerPrerendered" />
+                @RenderBody()
+            </article>
+
+            <div class="bottom-row px-4">
+            </div>
+
+            <div id="blazor-error-ui">
+                <environment include="Staging,Production">
+                    An error has occurred. This application may no longer respond until reloaded.
+                </environment>
+                <environment include="Development">
+                    An unhandled exception has occurred. See browser dev tools for details.
+                </environment>
+                <a href="" class="reload">Reload</a>
+                <a class="dismiss">🗙</a>
+            </div>
+        </main>
+    </div>
+    @RenderSection("Scripts", required: false)
+    <script src="~/Identity/lib/jquery/dist/jquery.js"></script>
+    <script src="~/Identity/lib/bootstrap/dist/js/bootstrap.bundle.js"></script>
+    <script src="~/Identity/js/site.js" asp-append-version="true"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@@popperjs/core@2.11.6/dist/umd/popper.min.js"
+            integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"
+            integrity="sha384-mQ93GR66B00ZXjt0YO5KlohRA5SY2XofN4zfuZxLkoj1gXtW8ANNCe9d5Y3eG5eD"
+            crossorigin="anonymous"></script>
+    <script src="_framework/blazor.server.js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+    <script src="_content/AntDesign/js/ant-design-blazor.js"></script>
+    <script src="_content/MatBlazor/dist/matBlazor.js"></script>
+    <script src="js/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+﻿<div class="card my-1">
+    <div class="card-header">
+        @Comment.CommentedUserName
+    </div>
+    <div class="card-body">
+        @Comment.Content
+    </div>
+    <div class="card-footer">
+        @Comment.CreatedOn
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Domain.Entities.Comment? Comment { get; set; }
+
+}

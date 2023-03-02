@@ -1,0 +1,97 @@
+﻿@page "/MyCollections/{CollectionId:guid}/Fields/Create"
+@using Presentation.Domain.Enums;
+@inject IUnitOfWork UnitOfWork
+@inject NavigationManager Navigation
+@inject IMessageService Message
+@inject SpinnerService Spinner
+
+<div class="h3">Create Custom Field</div>
+
+<EditForm Model="@_customField" OnValidSubmit="@CreateAsync"
+          OnInvalidSubmit="e=>_hasErrors = true">
+
+    <DataAnnotationsValidator />
+    <label for="Name">Name</label>
+    <Input Id="Name" name="Name" Placeholder="Name" AllowClear="true" @bind-Value="_customField.Name" TValue="string" />
+    <ValidationMessage For="@(()=>_customField.Name)" />
+    <Divider />
+
+    <label for="Type">Type</label>
+    <InputRadioGroup Name="Type" id="Type" @bind-Value="_customField.Type">
+        Type:
+        <br>
+        @foreach (var type in (CustomFieldType[])Enum
+        .GetValues(typeof(CustomFieldType)))
+        {
+            <InputRadio Value="type" />
+            <text>&nbsp;</text>
+            @type
+            <br>
+        }
+    </InputRadioGroup>
+    <ValidationMessage For="@(()=>_customField.Type)" />
+
+    <Divider />
+
+    <label for="isVisible">Is visible</label>
+    <Checkbox name="isVisible" Id="isVisible" @bind-Value="_customField.IsVisible" />
+    <ValidationMessage For="@(()=>_customField.IsVisible)" />
+    <Divider />
+
+    <button type="submit" class="btn btn-primary">Create</button>
+    <Divider />
+
+    @if (_hasErrors)
+    {
+        <div class="col-md-4" style="margin-top:10px">
+            <label>Validation Messages: </label>
+            <ValidationSummary />
+        </div>
+    }
+</EditForm>
+
+@code {
+    [Parameter]
+    public Guid CollectionId { get; set; }
+    Collection? _collection { get; set; }
+    CustomFieldMapper _fieldMapper;
+    CollectionCustomField _customField = new();
+    bool _hasErrors = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _collection = await UnitOfWork.Collections.GetByIdAsync(CollectionId);
+        _fieldMapper = _collection.CustomFieldMapper;
+    }
+
+    async Task CreateAsync(EditContext editContext)
+    {
+        Spinner.Show();
+        _customField.CustomFieldMapperId = _fieldMapper.Id;
+        var result = await UnitOfWork.CollectionCustomFields.AddAsync(_customField);
+
+        var items = await UnitOfWork.Items.FindAllAsync(x => x.CollectionId == CollectionId);
+        foreach (var item in items)
+        {
+            await UnitOfWork.ItemCustomFields.AddAsync(new()
+                {
+                    ItemId = item.Id,
+                    IsVisible = true,
+                    Name = _customField.Name,
+                    Type = _customField.Type
+                });
+        }
+        await UnitOfWork.SaveChangesAsync();
+        _hasErrors = false;
+        _customField = new();
+        if (result != null)
+        {
+            await Message.Success("Collection was created");
+        }
+        else
+        {
+            await Message.Error("Something went wrong");
+        }
+        Spinner.Hide();
+    }
+}

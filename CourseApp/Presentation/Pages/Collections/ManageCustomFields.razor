@@ -1,0 +1,124 @@
+﻿@page "/MyCollections/{CollectionId:guid}/Manage"
+@using Presentation.Domain.Enums;
+@inject IUnitOfWork UnitOfWork
+@inject NavigationManager Navigation
+
+<h3>Manage Collection</h3>
+<Button OnClick="NavigateToAddField" class="nav-link">Edt the Collection</Button>
+@if (_customFields != null && _customFields.Any())
+{
+    <div>
+        <div class="flex-column">
+            <Button Danger OnClick="@HideFields" Type="@AntDesign.ButtonType.Primary">
+            Hide
+            </Button>
+            <Button OnClick="@ShowFields">
+            <Icon Type="unlock" Theme="outline" />
+            Show
+            </Button>
+            <Button OnClick="@DeleteFields">
+            <Icon Type="delete" Theme="outline" />
+            Delete
+            </Button>
+        </div>
+        <h5>
+            selections:
+            @if (selectedRows != null)
+            {
+                @foreach (var selected in selectedRows)
+                {
+                    <Tag @key="selected" Closable OnClose="e=>RemoveSelection(selected.Name)">@selected.Name</Tag>
+                }
+                <Button Danger Size="small" OnClick="@(e => { table.SetSelection(null); })">Clear</Button>
+            }
+        </h5>
+
+        <Table @ref="table" DataSource="@FieldList" @bind-SelectedRows="selectedRows" RowSelectable="@(x => x.Name!="Disabled Field")">
+            <Selection Key="@context.Name" Type="@selectionType" Disabled="@(context.Name == "Disabled Field")" />
+            <PropertyColumn Property="c=>c.Name" />
+            <PropertyColumn Property="c=>c.Type" />
+            <PropertyColumn Property="c=>c.IsVisible" />
+        </Table>
+    </div>
+
+}
+
+@code {
+    [Parameter]
+    public Guid CollectionId { get; set; }
+
+    Collection? _collection { get; set; }
+    CustomFieldMapper _fieldMapper;
+    IEnumerable<CollectionCustomField> _customFields;
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _collection = await UnitOfWork.Collections.GetByIdAsync(CollectionId);
+        _fieldMapper = _collection.CustomFieldMapper;
+        _customFields = _fieldMapper.CustomFields;
+        FieldList = _customFields.ToArray();
+    }
+
+    void NavigateToAddField()
+    {
+        Navigation.NavigateTo($"MyCollections/{CollectionId}/Fields/Create");
+    }
+
+    ITable table;
+    public CollectionCustomField[] FieldList { get; set; }
+
+    IEnumerable<CollectionCustomField> selectedRows;
+    string selectionType = "checkbox";
+
+    public void RemoveSelection(string key)
+    {
+        var selected = selectedRows.Where(x => x.Name != key).ToList();
+        table.SetSelection(selected.Select(x => x.Name).ToArray());
+    }
+
+    private async Task HideFields()
+    {
+        var items = await UnitOfWork.Items.FindAllAsync(x => x.CollectionId == CollectionId);
+        var collectionFields = await UnitOfWork.CollectionCustomFields.FindAllAsync(c => c.CustomFieldMapperId == _fieldMapper.Id);
+        foreach (var row in selectedRows)
+        {
+            row.IsVisible = false;
+
+            foreach (var item in items)
+            {
+                item.ItemCustomFields.First(x => x.Name == row.Name).IsVisible = false;
+            }
+        }
+        await UnitOfWork.SaveChangesAsync();
+    }
+    private async Task ShowFields()
+    {
+        var items = await UnitOfWork.Items.FindAllAsync(x => x.CollectionId == CollectionId);
+        var collectionFields = await UnitOfWork.CollectionCustomFields.FindAllAsync(c => c.CustomFieldMapperId == _fieldMapper.Id);
+        foreach (var row in selectedRows)
+        {
+            row.IsVisible = true;
+            foreach (var item in items)
+            {
+                item.ItemCustomFields.First(x => x.Name == row.Name).IsVisible = true;
+            }
+        }
+        await UnitOfWork.SaveChangesAsync();
+    }
+    private async Task DeleteFields()
+    {
+        var items = await UnitOfWork.Items.FindAllAsync(x => x.CollectionId == CollectionId);
+
+        foreach (var row in selectedRows)
+        {
+            await UnitOfWork.CollectionCustomFields.DeleteAsync(row.Id);
+            foreach (var item in items)
+            {
+                var field = item.ItemCustomFields.First(x => x.Name == row.Name);
+                item.ItemCustomFields.Remove(field);
+            }
+        }
+        await UnitOfWork.SaveChangesAsync();
+    }
+}

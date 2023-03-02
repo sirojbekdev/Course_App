@@ -1,0 +1,90 @@
+﻿@page "/MyCollections/create"
+@inject IUnitOfWork UnitOfWork
+@inject AppData AppData
+@inject IMessageService Message
+@inject SpinnerService Spinner
+@inject NavigationManager Navigation
+
+<div class="h3">Create Collection</div>
+<EditForm Model="@_collection" OnValidSubmit="@CreateAsync" 
+    OnInvalidSubmit="@(e=>_hasError = true)">
+    <DataAnnotationsValidator />
+
+    <label for="Title">Title</label>
+    <Input Id="Title" name="Title" Placeholder="input with clear icon" AllowClear="true" @bind-Value="_collection.Title" TValue="string" />
+    <ValidationMessage For="@(()=>_collection.Title)" />
+    <Divider />
+
+    <label for="TopicTitle">Topic</label>
+    <AutoComplete name="TopicTitle" Id="TopicTitle" @bind-Value="_collection.TopicTitle"          Options="@options" 
+        OnSelectionChange="e=> selectItem = e" 
+        OnActiveChange="e=> activeItem = e" 
+        Placeholder="Topic Title" />
+    <ValidationMessage For="@(()=>_collection.Topic)" />
+    <Divider />
+
+    <label for="Description">Description</label>
+    <TextArea AutoSize="true" MinRows="7" name="Description" Id="EmaDescriptionilBody" Placeholder="Description" AllowClear="true" @bind-Value="_collection.Description" />
+    <ValidationMessage For="@(()=>_collection.Description)" />
+    <Divider />
+
+    <button type="submit" class="btn btn-primary">Create</button>
+    <Divider />
+
+    @if (_hasError)
+    {
+        <div class="col-md-4" style="margin-top:10px">
+            <label>Validation Messages: </label>
+            <ValidationSummary />
+        </div>
+    }
+</EditForm>
+
+
+@code {
+    AppUser _user;
+    bool _hasError = false;
+
+    private AutoCompleteOption selectItem;
+    private AutoCompleteOption activeItem;
+
+    Collection _collection = new();
+    IEnumerable<string> options;
+    List<Topic> _topics;
+
+    async Task CreateAsync(EditContext editContext)
+    {
+        Spinner.Show();
+        _collection.TopicId = _topics.First(x => x.Title == _collection.TopicTitle).Id;
+        var result =  await UnitOfWork.Collections.AddAsync(_collection);
+        if(result != null)
+        {
+            await Message.Success("Collection was created");
+            Spinner.Hide();
+            Navigation.NavigateTo("MyCollections");
+        }
+        else
+        {
+            await Message.Error("Something went wrong");
+            Spinner.Hide();
+            return;
+        }
+        _hasError = false;
+        _collection = new();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Spinner.Show();
+        if (AppData.User != null)
+        {
+            _user = AppData.User;
+            _collection.AppUserId = _user.Id;
+            _collection.AppUserName = _user.UserName;
+        }
+
+        _topics = await UnitOfWork.Topics.GetAllAsync();
+        options = _topics.Select(x => x.Title);
+        Spinner.Hide();
+    }
+}

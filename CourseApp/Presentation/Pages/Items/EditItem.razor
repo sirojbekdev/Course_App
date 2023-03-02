@@ -1,0 +1,186 @@
+﻿@page "/MyItems/{ItemId:guid}/Edit"
+@using Presentation.Domain.Enums;
+@inject IUnitOfWork UnitOfWork
+@inject AppData AppData
+@inject IMessageService Message
+@inject SpinnerService Spinner
+@inject NavigationManager Navigation
+
+@if (_item != null)
+{
+    <div class="h3">Create an Item</div>
+    <EditForm Model="@_item" OnValidSubmit="@SaveAsync"
+          OnInvalidSubmit="@(e=>_hasError = true)">
+        <DataAnnotationsValidator />
+
+        <label class="form-label" for="Title">Title</label>
+        <Input required Id="Title" name="Title" Placeholder="Title" AllowClear="true" @bind-Value="_item.Title" TValue="string" />
+        <ValidationMessage For="@(()=>_item.Title)" />
+        <Divider />
+
+        <h5>
+            selections:
+            @if (_selectedTagNames != null)
+            {
+                @foreach (var selected in _selectedTagNames)
+                {
+                    <Tag @key="selected" Closable
+             OnClose="e=>_selectedTagNames.Remove(selected)">
+                    @selected
+                    </Tag>
+                }
+                <Button Danger Size="small" OnClick="@(e => { _selectedTagNames.Clear(); })">Clear</Button>
+            }
+        </h5>
+
+        <label class="form-label" for="Tags">Tags</label>
+        <AutoComplete name="Tags" Id="Tags" @bind-Value="_selectedTag" Options="@options" OnSelectionChange="e=> selectItem = e"
+                  OnActiveChange="e=> activeItem = e" Placeholder="Tags">
+        </AutoComplete>
+        <Button OnClick="AddToTagList">Add</Button>
+
+        <Divider />
+        <MatFileUpload OnChange="@FilesReady" Label="Drop a single file here or Browse"></MatFileUpload>
+        @if (!string.IsNullOrWhiteSpace(_image))
+        {
+            <Tag Closable OnClose="e=>{_image = string.Empty;}">
+            <Image Width="150" PreviewVisible="true" Src="@_image" Alt="img" />
+            </Tag>
+        }
+        <Divider />
+
+        @if (_item.ItemCustomFields != null && _item.ItemCustomFields.Any())
+        {
+            foreach (var field in _item.ItemCustomFields)
+            {
+                <label class="form-label" for="@field.Name">@field.Name</label>
+                if (field.Type == CustomFieldType.Number)
+                {
+                    <Input Class="input-group" TValue="string" Id="@field.Name" @bind-Value="field.Value" name="@field.Name" Type="number" />
+                }
+                else if (field.Type == CustomFieldType.Boolean)
+                {
+                    <Input TValue="string" Id="@field.Name" Type="checkbox" @bind-Value="field.Value" name="@field.Name" />
+                }
+                else if (field.Type == CustomFieldType.DateTime && field.Value == null)
+                {
+                    <DatePicker Picker="@DatePickerType.Date" TValue="string" Id="@field.Name" @bind-Value="field.Value" name="@field.Name" />
+                }
+                else if (field.Type == CustomFieldType.DateTime)
+                {
+                    <DatePicker Picker="@DatePickerType.Date" TValue="string" Id="@field.Name" @bind-Value="field.Value" name="@field.Name" />
+                }
+                else if (field.Type == CustomFieldType.String)
+                {
+                    <Input MaxLength="20" TValue="string" Id="@field.Name" Type="text" @bind-Value="field.Value" name="@field.Name" />
+                }
+                else if (field.Type == CustomFieldType.Multiline)
+                {
+                    <TextArea AutoSize="true" MinRows="7" name="@field.Name" Id="@field.Name" Placeholder="Description" AllowClear="true" @bind-Value="field.Value" />
+                }
+            }
+        }
+        <Divider />
+
+        <button type="submit" class="btn btn-primary">Create</button>
+        <Divider />
+        @if (_hasError)
+        {
+            <div class="col-md-4" style="margin-top:10px">
+                <label>Validation Messages: </label>
+                <ValidationSummary />
+            </div>
+        }
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public Guid ItemId { get; set; }
+
+    Item? _item;
+    string _selectedTag;
+    List<string> _selectedTagNames = new();
+    List<Domain.Entities.Tag> _tags;
+    List<Domain.Entities.Tag> _selectedTags = new();
+
+    string _image = string.Empty;
+    string _imageFile = string.Empty;
+
+    IEnumerable<string> options;
+    bool _hasError = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _item = await UnitOfWork.Items.GetByIdAsync(ItemId);
+        Spinner.Show();
+        if (AppData.User != null
+            && (_item.AppUserId == AppData.User.Id || AppData.IsAdmin))
+        {
+            _tags = await UnitOfWork.Tags.GetAllAsync();
+            options = _tags.Select(x => x.TagName);
+            _selectedTags = _item.Tags.ToList();
+            _selectedTagNames = _selectedTags.Select(x => x.TagName).ToList();
+            _image = _item.ImagePath;
+            Spinner.Hide();
+        }
+        else
+        {
+            Spinner.Hide();
+            Navigation.NavigateTo("Identity/Account/Login");
+        }
+    }
+
+    async Task SaveAsync(EditContext editContext)
+    {
+        _item.ImagePath = string.IsNullOrEmpty(_image)
+        ? string.Empty
+        : _image;
+        foreach (var tag in _selectedTagNames)
+        {
+            var tg = _tags.Find(x => x.TagName == tag);
+            if (tg != null)
+            {
+                _selectedTags.Add(tg);
+            }
+            else
+            {
+                var newTag = new Domain.Entities.Tag
+                    {
+                        TagName = tag
+                    };
+                var result = await UnitOfWork.Tags.AddAsync(newTag);
+                _selectedTags.Add(result);
+            }
+        }
+        _item.Tags = _selectedTags;
+        await UnitOfWork.Items.UpdateAsync(_item.Id, _item);
+        _hasError = false;
+        await Message.Success("Item was Saved");
+        Navigation.NavigateTo($"MyItems/{ItemId}");
+    }
+
+    private AutoCompleteOption selectItem;
+    private AutoCompleteOption activeItem;
+
+    void AddToTagList()
+    {
+        if (!string.IsNullOrWhiteSpace(_selectedTag))
+        {
+            _selectedTagNames.Add(_selectedTag);
+            _selectedTag = string.Empty;
+        }
+    }
+
+    async Task FilesReady(IMatFileUploadEntry[] files)
+    {
+        var file = files.FirstOrDefault();
+        _imageFile = $"Name: {file.Name} - Size: {file.Size}";
+        MemoryStream ms = new MemoryStream();
+        await file.WriteToStreamAsync(ms);
+        byte[] byteArray = ms.ToArray();
+        var b64String = Convert.ToBase64String(byteArray);
+        _image = "data:image/png;base64," + b64String;
+    }
+}
+

@@ -1,0 +1,9 @@
+﻿@page "/Search"
+
+<p>You Searched:</p>
+<p>@SearchTerm</p>
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string SearchTerm { get; set; }
+}

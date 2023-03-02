@@ -1,0 +1,31 @@
+﻿@page "/Topics/{TopicId:guid}"
+@inject AppData AppData
+@inject IUnitOfWork UnitOfWork
+@inject IMessageService Message
+@inject SpinnerService Spinner
+
+<div class="h3">Collections in this Topic</div>
+
+@if (_collections != null && _collections.Any())
+{
+    <CollectionTable Collections="_collections" />
+}
+else
+{
+    <Empty />
+}
+
+@code {
+    [Parameter]
+    public Guid TopicId { get; set; }
+
+    IEnumerable<Collection>? _collections;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        Spinner.Show();
+        _collections = await UnitOfWork.Collections.FindAllAsync(x => x.TopicId == TopicId);
+        Spinner.Hide();
+    }
+}
+

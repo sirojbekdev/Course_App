@@ -1,0 +1,57 @@
+﻿@page "/Topics/Create"
+@inject SpinnerService Spinner
+@inject IUnitOfWork UnitOfWork
+@inject NavigationManager Navigation
+@inject IMessageService Message
+@attribute [Authorize(Policy ="IsActive", Roles = "Admin")]
+<h3>Create Topic</h3>
+
+<EditForm Model="@_topic" OnValidSubmit="@CreateAsync"
+          OnInvalidSubmit="@(e=>_hasError = true)">
+    <DataAnnotationsValidator />
+
+    <label for="Title">Title</label>
+    <Input Id="Title" name="Title" Placeholder="Title" AllowClear="true" @bind-Value="_topic.Title" TValue="string" />
+    <ValidationMessage For="@(()=>_topic.Title)" />
+    <Divider />
+
+    <button type="submit" class="btn btn-primary">Create</button>
+    <Divider />
+
+    @if (_hasError)
+    {
+        <div class="col-md-4" style="margin-top:10px">
+            <label>Validation Messages: </label>
+            <ValidationSummary />
+        </div>
+    }
+</EditForm>
+
+@code {
+    AppUser _user;
+    bool _hasError = false;
+
+    private AutoCompleteOption selectItem;
+    private AutoCompleteOption activeItem;
+
+    Topic _topic = new();
+
+    async Task CreateAsync(EditContext editContext)
+    {
+        Spinner.Show();
+        var result = await UnitOfWork.Topics.AddAsync(_topic);
+        if (result != null)
+        {
+            await Message.Success("Collection was created");
+            Spinner.Hide();
+            Navigation.NavigateTo("MyCollections");
+        }
+        else
+        {
+            await Message.Error("Something went wrong");
+            Spinner.Hide();
+            return;
+        }
+        _hasError = false;
+    }
+}

@@ -1,0 +1,16 @@
+﻿<Table PageSize="10" Class="text-body bg-body" TItem="Topic" DataSource="@Topics">
+
+    <PropertyColumn Class="text-body bg-body" Property="c=>c.Title">
+        <a href="Topics/@context.Id">@context.Title</a>
+    </PropertyColumn>
+
+    <PropertyColumn Class="text-body bg-body" Sortable DefaultSortOrder="AntDesign.SortDirection.Descending" Title="No:Collections" Property="c=>c.Collections.Count()">
+    </PropertyColumn>
+    <PropertyColumn Class="text-body bg-body" Sortable DefaultSortOrder="AntDesign.SortDirection.Descending" Title="Total Items" Property="c=>c.Collections.Sum(x=>x.Items.Count)">
+    </PropertyColumn>
+</Table>
+
+@code {
+    [Parameter]
+    public IEnumerable<Topic>? Topics { get; set; }
+}

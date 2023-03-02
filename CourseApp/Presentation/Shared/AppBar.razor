@@ -1,0 +1,55 @@
+﻿@using Presentation.Components
+@using Presentation.Data;
+@using System.Globalization;
+@inject NavigationManager Navigation
+@inject AppData appData
+@inject IJSRuntime js
+
+<MudToggleIconButton ToggledChanged="@ToggleTheme" Toggled="_isDarkMode"
+                     Icon="@Icons.Material.Filled.LightMode" Style="color:white" Title="Off"
+                     ToggledIcon="@Icons.Material.Filled.ModeNight" ToggledTitle="On" />
+
+<LangToggler Culture="CultureInfo.DefaultThreadCurrentUICulture" AfterUpdate="AfterLangUpdate" 
+/>
+
+@code {
+    private bool _isDarkMode;
+
+    protected override void OnInitialized()
+    {
+        if (appData.Theme == "dark")
+        {
+            _isDarkMode = true;
+        }
+        else
+        {
+            _isDarkMode = false;
+        }
+    }
+    async Task ToggleTheme()
+    {
+        if (appData.Theme == "light")
+        {
+            appData.Theme = "dark";
+            _isDarkMode = true;
+            await js.InvokeVoidAsync("addCookie", "theme", "dark", 365);
+        }
+        else
+        {
+            appData.Theme = "light";
+            _isDarkMode = false;
+            await js.InvokeVoidAsync("addCookie", "theme", "light", 365);
+        }
+
+        await js.InvokeVoidAsync("toggleTheme");
+    }
+    private async Task AfterLangUpdate(CultureInfo culture)
+    {
+        await js.InvokeVoidAsync("addCookie", "lang", culture.Name, 365);
+        Thread.CurrentThread.CurrentCulture = culture;
+        Thread.CurrentThread.CurrentUICulture = culture;
+        CultureInfo.DefaultThreadCurrentCulture = culture;
+        CultureInfo.DefaultThreadCurrentUICulture = culture;
+        Navigation.NavigateTo(Navigation.Uri, true);
+    }
+}

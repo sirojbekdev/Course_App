@@ -1,0 +1,156 @@
+﻿@page "/Items/{ItemId:guid}"
+@using Markdig;
+@using Presentation.Domain.Enums;
+@inject IUnitOfWork UnitOfWork
+@inject AppData AppData
+
+@if (_item != null)
+{
+    <h3>@_item.Title</h3>
+
+    @if (_item.Collection.AppUserId == _user?.Id || _isAdmin)
+    {
+        <div>
+            <a href="MyItems/@_item.Id/Edit">
+                <span class="bi bi-pen"></span> Edit
+            </a>
+        </div>
+    }
+
+    <div class="rounded-pill mb-2">
+        <Button Disabled="_isViewOnly" Class="btn rounded-pill" OnClick="async ()=>await LikeItem(_item)">
+            @if (_item.Likes.Any(x => x.UserId == _user?.Id))
+            {
+                <span class="bi bi-heart-fill" aria-hidden="true" style="color:red"></span>
+            }
+            else
+            {
+                <span class="bi bi-heart" aria-hidden="true" style="color:gray"></span>
+            }
+        </Button>
+        @_item.Likes?.Count
+    </div>
+
+    @if (string.IsNullOrWhiteSpace(_item.ImagePath))
+    {
+        <svg class="bi bi-image" width="200" height="200"></svg>
+    }
+    else
+    {
+        <Image Width="200" Height="200" Src="@_item.ImagePath" Alt="img" />
+    }
+
+    @if (_item.Tags != null && _item.Tags.Any())
+    {
+        <div class="my-3">
+            @foreach (var tag in _item.Tags)
+            {
+                <a href="Search/Tags/@tag.Id">
+                <Tag @key="@tag.TagName">#@tag.TagName</Tag>
+                </a>
+            }
+        </div>
+    }
+
+    @if (_item.ItemCustomFields != null && _item.ItemCustomFields.Any())
+    {
+        foreach (var field in _item.ItemCustomFields)
+        {
+            <div class="h5">@field.Name:</div>
+            if(field.Value == null || string.IsNullOrWhiteSpace(field.Value))
+            {
+                <div class="h6 text-danger">Not Defined</div>
+            }
+            else if (field.Type == CustomFieldType.Multiline)
+            {
+                <div class="form-control p-2">
+                    @((MarkupString)Markdown.ToHtml(field.Value))
+                </div>
+            }
+            else
+            {
+                <div class="h6">@field.Value</div>
+            }
+            <Divider />
+        }
+    }
+    <div class="h4">Comments:</div>
+    @if (_item.Comments != null && _item.Comments.Any())
+    {
+        foreach (var comment in _item.Comments)
+        {
+            <CommentCard @key="comment.Id" Comment="comment" />
+        }
+    }
+    else
+    {
+        <Empty />
+        <div class="h6 mb-1">Be First to comment</div>
+    }
+    <EditForm Model="_newComment" OnValidSubmit="@AddComment"
+          OnInvalidSubmit="e=> _hasErrors = true">
+        <label for="comment">comment here</label>
+        <TextArea AutoSize MinRows="5" Disabled="_isViewOnly" @bind-Value="_newComment.Content"  Id="comment" name="comment" />
+        <Divider />
+        @if (_hasErrors)
+        {
+            <div class="col-md-4" style="margin-top:10px">
+                <label>Validation Messages: </label>
+                <ValidationSummary />
+            </div>
+        }
+        <button disabled="@_isViewOnly" class="btn btn-primary" type="submit">Comment</button>
+    </EditForm>
+}
+@code {
+    [Parameter]
+    public Guid ItemId { get; set; }
+
+    bool _isViewOnly = true;
+    bool _isAdmin = false;
+    bool _hasErrors = false;
+
+    AppUser? _user;
+    Item _item;
+    Domain.Entities.Comment _newComment = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (AppData.User != null)
+        {
+            _user = AppData.User;
+            _isAdmin = AppData.IsAdmin;
+            _isViewOnly = false;
+        }
+
+        _item = await UnitOfWork.Items.GetByIdAsync(ItemId);
+    }
+
+    async Task LikeItem(Item item)
+    {
+        var like = item.Likes.ToList().Find(x => x.UserId == _user?.Id);
+        if (like == null)
+        {
+            await UnitOfWork.Likes.AddAsync(new()
+                {
+                    Item = item,
+                    UserId = _user.Id
+                });
+        }
+        else
+        {
+            item.Likes.Remove(like);
+        }
+        await UnitOfWork.SaveChangesAsync();
+    }
+
+    private async Task AddComment()
+    {
+        _newComment.ItemId = ItemId;
+        _newComment.CommentedUserName = _user.UserName;
+        await UnitOfWork.Comments.AddAsync(_newComment);
+        _hasErrors = false;
+        await UnitOfWork.SaveChangesAsync();
+        _newComment = new();
+    }
+}

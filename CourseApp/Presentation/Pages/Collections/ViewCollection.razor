@@ -1,0 +1,61 @@
+﻿@page "/Collections/{CollectionId:guid}"
+@using Presentation.Domain.Enums;
+@using Markdig
+@inject IUnitOfWork UnitOfWork
+@inject AppData AppData
+
+@if (_collection != null)
+{
+    <div class="h3">@_collection.Title</div>
+    <div class="h4">
+        Owner: <a href="Collectors/@_collection.AppUserId"> @_collection.AppUserName </a>
+    </div>
+    @if (_collection.AppUserId == _user?.Id || _isAdmin)
+    {
+        <div>
+            <a href="MyCollections/@_collection.Id/Edit">
+                <span class="bi bi-pen"></span> Edit
+            </a>
+        </div>
+        <div>
+            <a href="MyCollections/@_collection.Id/Manage">
+                <span class="bi bi-gear"></span> Manage Fields
+            </a>
+        </div>
+        <div>
+            <a href="MyCollections/@_collection.Id/Items/Create">
+                <span class="bi bi-plus"></span> Add Item
+            </a>
+        </div>
+    }
+
+    <Divider />
+    <div class="text-body bg-body p-2">
+        @((MarkupString)Markdown.ToHtml(_collection.Description))
+    </div>
+    <Divider />
+
+    <ItemTable Items="_collection.Items" />
+}
+
+@code {
+    [Parameter]
+    public Guid CollectionId { get; set; }
+
+    AppUser? _user;
+    bool _isViewOnly = true;
+    bool _isAdmin = false;
+    private Collection _collection;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (AppData.User != null)
+        {
+            _user = AppData.User;
+            _isAdmin = AppData.IsAdmin;
+            _isViewOnly = false;
+        }
+
+        _collection = await UnitOfWork.Collections.GetByIdAsync(CollectionId);
+    }
+}

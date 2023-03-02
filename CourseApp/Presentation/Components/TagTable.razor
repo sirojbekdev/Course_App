@@ -1,0 +1,85 @@
+﻿@inject AppData AppData
+@inject IUnitOfWork UnitOfWork
+@inject IMessageService Message
+@inject SpinnerService Spinner
+
+<Table PageSize="20" Class="text-body bg-body" TItem="Domain.Entities.Tag" DataSource="@Tags">
+
+    <PropertyColumn Class="text-body bg-body" Sortable Property="c=>c.TagName">
+        <a href="Search/Tags/@context.Id">@context.TagName</a>
+    </PropertyColumn>
+
+    <PropertyColumn Class="text-body bg-body" Sortable DefaultSortOrder="AntDesign.SortDirection.Descending" Title="No: Items" Property="c=>c.Items.Count()">
+    </PropertyColumn>
+
+    @if (AppData.User != null &&  AppData.IsAdmin)
+    {
+        <ActionColumn Class="text-body bg-body" Title="Action">
+            <Space Size=@("middle")>
+                <SpaceItem>
+                    <a href="Collections/@context.Id/Edit">Edit</a>
+                </SpaceItem>
+                <SpaceItem>
+                    <Button Class="btn-danger" OnClick="()=> Delete(context)">Delete</Button>
+                </SpaceItem>
+            </Space>
+        </ActionColumn>
+    }
+
+</Table>
+
+@if (_selectedItem != null)
+{
+    <Modal Title="@_selectedItem.TagName"
+       Visible="@_visible"
+       OnOk="@HandleOk"
+       OkButtonProps="new AntDesign.ButtonProps(){ Danger = true }"
+       OnCancel="@HandleCancel">
+        <p>Do You want to delete?</p>
+        <p>Tag : @_selectedItem.TagName</p>
+    </Modal>
+}
+
+@code {
+    [Parameter]
+    public IEnumerable<Domain.Entities.Tag>? Tags { get; set; }
+
+    protected override void OnInitialized()
+    {
+        _isViewOnly = AppData.User != null;
+    }
+
+    Domain.Entities.Tag? _selectedItem;
+    bool _visible = false;
+    bool _isViewOnly = true;
+
+    private async Task HandleOk(MouseEventArgs e)
+    {
+        Spinner.Show();
+        var result = await UnitOfWork.Collections.DeleteAsync(_selectedItem.Id);
+        if (result != null)
+        {
+            await Message.Success("Collection Deleted");
+            Spinner.Hide();
+        }
+        else
+        {
+            await Message.Error("Something went wrong");
+            Spinner.Hide();
+        }
+        _visible = false;
+    }
+
+    private void HandleCancel(MouseEventArgs e)
+    {
+        _visible = false;
+        _selectedItem = null;
+    }
+
+    void Delete(Domain.Entities.Tag tag)
+    {
+        _visible = true;
+        _selectedItem = tag;
+    }
+
+}
