@@ -14,7 +14,8 @@
     <PropertyColumn Sortable Title="Collections" Property="c=>c.Collections">
         @context.Collections.Count
     </PropertyColumn>
-
+    <PropertyColumn Sortable Title="Total Items" Property="c=> c.Collections.Sum(x=>x.Items.Count)">
+    </PropertyColumn>
     <PropertyColumn Sortable Title="Total Likes" Property="c=> c.Collections.Sum(x=>x.Items.Sum(x=>x.Likes.Count))">
     </PropertyColumn>
 

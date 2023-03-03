@@ -1,9 +1,26 @@
 ﻿@page "/Search"
+@using Presentation.Components.SearchResults
+@using Presentation.Infostructure.SearchResults;
+@using Presentation.Infostructure.Services;
+@inject IItemSearch ItemSearch
 
 <p>You Searched:</p>
 <p>@SearchTerm</p>
+
+@if(_itemResults!=null && _itemResults.Any())
+{
+    <ItemResultTable Items="_itemResults" />
+}
+
 @code {
     [Parameter]
     [SupplyParameterFromQuery]
     public string SearchTerm { get; set; }
+
+    IEnumerable<ItemResult> _itemResults;
+    protected override void OnParametersSet()
+    {
+        ItemSearch.Index();
+        _itemResults = ItemSearch.Search(SearchTerm);
+    }
 }

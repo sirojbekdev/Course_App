@@ -1,0 +1,28 @@
+﻿@using Presentation.Infostructure.SearchResults;
+@inject AppData AppData
+@inject IUnitOfWork UnitOfWork
+@inject IMessageService Message
+@inject SpinnerService Spinner
+
+<Table PageSize="10" Class="text-body bg-body" TItem="ItemResult" DataSource="@Items">
+
+    <PropertyColumn Sortable Property="c=>c.Title">
+        <a href="Items/@context.Id">@context.Title</a>
+    </PropertyColumn>
+
+    <PropertyColumn Sortable Title="Collection" Property="c=>c.CollectionTitle">
+        <a href="Collections/@context.CollectionId">@context.CollectionTitle</a>
+    </PropertyColumn>
+
+    <PropertyColumn Sortable Title="Owner" Property="c=>c.AppUserName">
+        <a href="Collectors/@context.AppUserId">@context.AppUserName</a>
+    </PropertyColumn>
+
+
+</Table>
+
+@code {
+    [Parameter]
+    public IEnumerable<ItemResult>? Items { get; set; }
+}
+

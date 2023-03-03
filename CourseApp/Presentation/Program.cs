@@ -42,6 +42,7 @@ builder.Services.AddLocalization();
 builder.Services.AddScoped<SpinnerService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddSingleton<AppData>();
+builder.Services.AddTransient<IItemSearch, ItemSearch>();
 builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
 
 builder.Services.AddScoped<IAuthorizationHandler, CorrectUserHandler>();
