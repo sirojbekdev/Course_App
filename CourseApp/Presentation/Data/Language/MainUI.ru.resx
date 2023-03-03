@@ -120,10 +120,40 @@
   <data name="AppName" xml:space="preserve">
     <value>Приложение коллекционеров</value>
   </data>
+  <data name="Collections" xml:space="preserve">
+    <value>Коллекции</value>
+  </data>
+  <data name="Collectors" xml:space="preserve">
+    <value>Коллекционеры</value>
+  </data>
   <data name="Hi" xml:space="preserve">
-    <value>Privet {0}</value>
+    <value>Привет, {0} !</value>
+  </data>
+  <data name="Home" xml:space="preserve">
+    <value>Домой</value>
   </data>
   <data name="Items" xml:space="preserve">
     <value>Предметы</value>
+  </data>
+  <data name="Login" xml:space="preserve">
+    <value>Войти</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Выход</value>
+  </data>
+  <data name="MyCollections" xml:space="preserve">
+    <value>Мои коллекции</value>
+  </data>
+  <data name="MyItems" xml:space="preserve">
+    <value>Мои предметы</value>
+  </data>
+  <data name="Register" xml:space="preserve">
+    <value>Зарегистрироваться</value>
+  </data>
+  <data name="Tags" xml:space="preserve">
+    <value>Теги</value>
+  </data>
+  <data name="Topics" xml:space="preserve">
+    <value>Темы</value>
   </data>
 </root>

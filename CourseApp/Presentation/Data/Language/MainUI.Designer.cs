@@ -142,6 +142,15 @@ namespace Presentation.Data.Language {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to My Items.
+        /// </summary>
+        public static string MyItems {
+            get {
+                return ResourceManager.GetString("MyItems", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Register.
         /// </summary>
         public static string Register {
